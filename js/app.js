@@ -335,16 +335,30 @@ function initReader() {
         btnSide.classList.remove('active');
     });
 
-    // Wrap words in each English paragraph block
-    document.querySelectorAll('.pane-en').forEach(pane => {
-        const text = pane.textContent.trim();
-        if (text) {
-            // Match any English word, numbers, apostrophes and hyphens
-            // Wrap in span with clickable word class
-            const html = text.replace(/([a-zA-Z0-9'-]+)/g, '<span class="word-clickable">$1</span>');
-            pane.innerHTML = html;
+    // Wrap words in each English paragraph block using chunking to prevent freezing
+    const panesEn = Array.from(document.querySelectorAll('.pane-en'));
+    let paneIndex = 0;
+    
+    function processPanesChunk() {
+        const chunkEnd = Math.min(paneIndex + 20, panesEn.length);
+        for (; paneIndex < chunkEnd; paneIndex++) {
+            const pane = panesEn[paneIndex];
+            const text = pane.textContent.trim();
+            if (text && !pane.hasAttribute('data-wrapped')) {
+                // Match any English word, numbers, apostrophes and hyphens
+                // Wrap in span with clickable word class
+                const html = text.replace(/([a-zA-Z0-9'-]+)/g, '<span class="word-clickable">$1</span>');
+                pane.innerHTML = html;
+                pane.setAttribute('data-wrapped', 'true');
+            }
         }
-    });
+        if (paneIndex < panesEn.length) {
+            requestAnimationFrame(processPanesChunk); // Yield to browser to keep UI responsive
+        }
+    }
+    if (panesEn.length > 0) {
+        requestAnimationFrame(processPanesChunk);
+    }
 
     // Event delegation for word click lookup
     workspace.addEventListener('click', (e) => {
@@ -454,7 +468,7 @@ function initReader() {
     }
 
     // Auto queue translation of pending items on startup
-    enqueuePendingTranslations();
+    // enqueuePendingTranslations(); // Disabled to allow manual clicking per paragraph
 
     // Trigger translate remaining items click listener
     document.getElementById('btnTranslateAll').addEventListener('click', () => {
@@ -558,6 +572,8 @@ async function lookupWord(word, targetSpan) {
 
 // --- TRANSLATION RUNNER SYSTEM ---
 function enqueuePendingTranslations(force = false) {
+    const pendingPanes = [];
+    
     document.querySelectorAll('.pane-ar').forEach(pane => {
         const status = pane.getAttribute('data-status');
         const idx = parseInt(pane.closest('.paragraph-block').getAttribute('data-index'));
@@ -565,19 +581,33 @@ function enqueuePendingTranslations(force = false) {
         if (status === 'pending' || (force && status === 'failed')) {
             if (!translationQueue.includes(idx)) {
                 translationQueue.push(idx);
-                // Reset visual state to loading
-                pane.setAttribute('data-status', 'pending');
-                pane.innerHTML = `
-                    <div class="translation-loading">
-                        <span class="spinner"></span>
-                        <span>Translating...</span>
-                    </div>`;
+                pendingPanes.push(pane);
             }
         }
     });
 
-    if (translationQueue.length > 0 && !queueIsRunning) {
-        processTranslationQueue();
+    // Chunk the DOM updates so the browser doesn't freeze
+    let updateIndex = 0;
+    function updatePanesChunk() {
+        const chunkEnd = Math.min(updateIndex + 25, pendingPanes.length);
+        for (; updateIndex < chunkEnd; updateIndex++) {
+            const pane = pendingPanes[updateIndex];
+            pane.setAttribute('data-status', 'pending');
+            pane.innerHTML = `
+                <div class="translation-loading">
+                    <span class="spinner"></span>
+                    <span>Translating...</span>
+                </div>`;
+        }
+        if (updateIndex < pendingPanes.length) {
+            requestAnimationFrame(updatePanesChunk);
+        } else if (translationQueue.length > 0 && !queueIsRunning) {
+            processTranslationQueue();
+        }
+    }
+    
+    if (pendingPanes.length > 0) {
+        requestAnimationFrame(updatePanesChunk);
     }
 }
 
@@ -658,12 +688,7 @@ function processTranslationQueue() {
 }
 
 function updateReaderStats() {
-    let translatedCount = 0;
-    document.querySelectorAll('.pane-ar').forEach(pane => {
-        if (pane.getAttribute('data-status') === 'translated') {
-            translatedCount++;
-        }
-    });
+    const translatedCount = document.querySelectorAll('.pane-ar[data-status="translated"]').length;
 
     // Update numbers
     const span = document.getElementById('translatedCountSpan');
