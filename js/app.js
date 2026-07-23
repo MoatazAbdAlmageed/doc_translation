@@ -154,6 +154,48 @@ function initDashboard() {
         }, 2000);
     });
 
+    // Test API Key button logic
+    const testApiBtn = document.getElementById('testApiBtn');
+    if (testApiBtn) {
+        testApiBtn.addEventListener('click', () => {
+            const key = geminiApiKey.value.trim();
+            const text = document.getElementById('testParagraph').value.trim();
+            const resultDiv = document.getElementById('testResult');
+            
+            if (!key) {
+                alert('Please enter a Gemini API Key to test.');
+                return;
+            }
+            if (!text) {
+                alert('Please enter some text to translate.');
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Testing translation...';
+            resultDiv.style.color = 'var(--text-secondary)';
+            
+            const params = new URLSearchParams();
+            params.append('q', text);
+            params.append('engine', 'gemini');
+            params.append('gemini_key', key);
+            
+            fetch(`translate_api.php?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    resultDiv.innerHTML = `<div style="color: #34d399; margin-bottom: 0.5rem;"><i class="fa-solid fa-circle-check"></i> Success! Translation:</div>
+                    <div style="padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 0.25rem; font-family: 'Amiri', serif; font-size: 1.1rem; direction: rtl; color: var(--text-primary); line-height: 1.6;">${data.text_ar}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> Failed: ${data.error}</div>`;
+                }
+            })
+            .catch(err => {
+                resultDiv.innerHTML = `<div style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> Network Error: ${err.message}</div>`;
+            });
+        });
+    }
+
     // Drag and Drop Upload Zone triggers
     uploadZone.addEventListener('click', () => fileInput.click());
     

@@ -138,52 +138,71 @@ function translateGoogle($text) {
  * Call Google Gemini API
  */
 function translateGemini($text, $apiKey) {
-    $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
-    
-    // Explicit prompt to get high-quality human-like Arabic translation
-    $prompt = "You are a professional, bilingual translator specializing in translating English literature and documents into beautiful, natural, and fluent Arabic. " .
-              "Translate the English text below into Arabic. Ensure the translation matches the tone of the original, respects cultural context, and flows like it was written by a human translator. " .
-              "Do NOT include any notes, explanations, introductory words, or markdown format blocks. Just return the pure Arabic text.\n\n" .
-              "Text to translate:\n" . $text;
-    
-    $payload = [
-        'contents' => [
-            [
-                'parts' => [
-                    ['text' => $prompt]
+    // List of models to try in order of preference
+    $models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
+    $lastException = null;
+
+    foreach ($models as $model) {
+        try {
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/" . $model . ":generateContent?key=" . $apiKey;
+            
+            // Explicit prompt to get high-quality human-like Arabic translation
+            $prompt = "You are a professional, bilingual translator specializing in translating English literature and documents into beautiful, natural, and fluent Arabic. " .
+                      "Translate the English text below into Arabic. Ensure the translation matches the tone of the original, respects cultural context, and flows like it was written by a human translator. " .
+                      "Do NOT include any notes, explanations, introductory words, or markdown format blocks. Just return the pure Arabic text.\n\n" .
+                      "Text to translate:\n" . $text;
+            
+            $payload = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.3
                 ]
-            ]
-        ],
-        'generationConfig' => [
-            'temperature' => 0.3
-        ]
-    ];
-    
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 25);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    
-    if ($response) {
-        $data = json_decode($response, true);
-        if ($httpCode === 200) {
-            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
-                return trim($data['candidates'][0]['content']['parts'][0]['text']);
+            ];
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 25);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($response) {
+                $data = json_decode($response, true);
+                if ($httpCode === 200) {
+                    if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                        return trim($data['candidates'][0]['content']['parts'][0]['text']);
+                    }
+                } else {
+                    if (isset($data['error']['message'])) {
+                        throw new Exception("Gemini API Error: " . $data['error']['message']);
+                    }
+                }
             }
-        } else {
-            if (isset($data['error']['message'])) {
-                throw new Exception("Gemini API Error: " . $data['error']['message']);
+            
+            throw new Exception("Connection to Gemini API failed for model $model (HTTP $httpCode).");
+            
+        } catch (Exception $e) {
+            $lastException = $e;
+            // If the model is not found, not supported, deprecated, or no longer available, try the next model
+            if (preg_match('/(not found|not supported|available|deprecated|invalid|404)/i', $e->getMessage())) {
+                continue;
             }
+            // For other API issues (e.g., billing, invalid key), throw immediately
+            throw $e;
         }
     }
     
-    throw new Exception("Connection to Gemini API failed (HTTP $httpCode). Please verify your network and API Key.");
+    throw $lastException ?: new Exception("Failed to communicate with Gemini API across all tried models.");
 }

@@ -158,6 +158,16 @@ function formatBytes($bytes, $precision = 2) {
                         <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4;">
                             Get a free Gemini API Key from <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary); text-decoration: underline;">Google AI Studio</a> to unlock high-quality context-aware translation.
                         </p>
+                        
+                        <!-- Test Translation Area -->
+                        <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <label class="form-label" style="font-size: 0.85rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-flask"></i> Test API Key</label>
+                            <textarea id="testParagraph" class="form-input" style="min-height: 60px; font-size: 0.85rem; margin-bottom: 0.75rem;" placeholder="Enter a short English paragraph here to test the API key..."></textarea>
+                            <button id="testApiBtn" type="button" class="btn btn-secondary btn-sm" style="width: 100%;">
+                                <i class="fa-solid fa-vial"></i> Test Translation
+                            </button>
+                            <div id="testResult" style="margin-top: 0.75rem; font-size: 0.85rem; display: none;"></div>
+                        </div>
                     </div>
 
                     <button id="saveSettingsBtn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
