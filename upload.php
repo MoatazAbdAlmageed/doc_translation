@@ -6,6 +6,7 @@ require_once __DIR__ . '/classes/DocParser.php';
 require_once __DIR__ . '/classes/DocxParser.php';
 require_once __DIR__ . '/classes/EpubParser.php';
 require_once __DIR__ . '/classes/PdfParser.php';
+require_once __DIR__ . '/classes/MdParser.php';
 
 header('Content-Type: application/json');
 
@@ -27,9 +28,9 @@ $fileSize = $file['size'];
 $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
 
 // Supported extensions
-$allowedExtensions = ['txt', 'doc', 'docx', 'epub', 'pdf'];
+$allowedExtensions = ['txt', 'doc', 'docx', 'epub', 'pdf', 'md'];
 if (!in_array($ext, $allowedExtensions)) {
-    echo json_encode(['success' => false, 'error' => 'Unsupported file format. Please upload .txt, .doc, .docx, .epub, or .pdf.']);
+    echo json_encode(['success' => false, 'error' => 'Unsupported file format. Please upload .txt, .doc, .docx, .epub, .pdf, or .md.']);
     exit;
 }
 
@@ -66,6 +67,9 @@ try {
             break;
         case 'pdf':
             $paragraphs = PdfParser::parse($destination);
+            break;
+        case 'md':
+            $paragraphs = MdParser::parse($destination);
             break;
     }
 } catch (Exception $e) {

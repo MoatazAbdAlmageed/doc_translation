@@ -58,10 +58,10 @@ function formatBytes($bytes, $precision = 2) {
                     
                     <form id="uploadForm" enctype="multipart/form-data">
                         <div class="upload-zone" id="uploadZone">
-                            <input type="file" id="fileInput" name="document" accept=".txt,.doc,.docx,.epub,.pdf" style="display: none;">
+                            <input type="file" id="fileInput" name="document" accept=".txt,.doc,.docx,.epub,.pdf,.md" style="display: none;">
                             <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
                             <div class="upload-text">Drag & drop your document here, or <span style="color: var(--primary); text-decoration: underline;">browse</span></div>
-                            <div class="upload-formats">Supports PDF, EPUB, DOCX, DOC, and TXT files (Max 20MB)</div>
+                            <div class="upload-formats">Supports PDF, EPUB, DOCX, DOC, TXT, and MD files (Max 20MB)</div>
                         </div>
                     </form>
                     
@@ -110,10 +110,13 @@ function formatBytes($bytes, $precision = 2) {
                                     </div>
                                 </div>
                                 <div class="history-actions">
-                                    <a href="reader.php?id=<?php echo $doc['id']; ?>" class="btn btn-primary btn-sm" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                    <a href="reader.php?id=<?php echo $doc['id']; ?>" class="btn btn-primary btn-sm" style="padding: 0.5rem 1rem; font-size: 0.85rem;" title="Read Document">
                                         <i class="fa-solid fa-book-open-reader"></i> Read
                                     </a>
-                                    <button class="btn btn-danger btn-sm delete-doc-btn" data-id="<?php echo $doc['id']; ?>" style="padding: 0.5rem; width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                                    <a href="export_epub.php?id=<?php echo $doc['id']; ?>" class="btn btn-secondary btn-sm" style="padding: 0.5rem; width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; background: rgba(99, 102, 241, 0.2); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.4);" title="Export to Kindle (EPUB)">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                    <button class="btn btn-danger btn-sm delete-doc-btn" data-id="<?php echo $doc['id']; ?>" style="padding: 0.5rem; width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;" title="Delete Document">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>

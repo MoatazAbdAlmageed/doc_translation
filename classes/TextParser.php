@@ -9,7 +9,7 @@ class TextParser {
         }
         
         // Detect encoding and convert to UTF-8 if needed
-        $encoding = mb_detect_encoding($content, 'UTF-8, ISO-8859-1, Windows-1256, ASCII', true);
+        $encoding = mb_detect_encoding($content, 'UTF-8, ISO-8859-1, ASCII', true);
         if ($encoding && $encoding !== 'UTF-8') {
             $content = mb_convert_encoding($content, 'UTF-8', $encoding);
         }

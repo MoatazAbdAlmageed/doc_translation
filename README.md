@@ -4,7 +4,7 @@ TransRead AI is a web-based application designed specifically for Arabic speaker
 
 ## Features
 
-- **Multi-Format Document Support**: Upload `.txt`, `.doc`, `.docx`, `.epub`, and `.pdf` files.
+- **Multi-Format Document Support**: Upload `.txt`, `.doc`, `.docx`, `.epub`, `.pdf`, and `.md` files.
 - **Dual Translation Engines**:
   - **Standard**: Uses a fast, free Google Translate proxy.
   - **Ultra AI**: Uses the Google Gemini API for highly accurate, human-like, context-aware translation. It includes a dynamic model negotiator to automatically switch to the best available Gemini model.
