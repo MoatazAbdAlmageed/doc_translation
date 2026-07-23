@@ -1,0 +1,28 @@
+# TransRead AI: .gitignore file
+
+# Dependencies
+/vendor/
+/composer.phar
+
+# SQLite Local Database
+/database.sqlite
+/database.sqlite-journal
+/database.sqlite-shm
+/database.sqlite-wal
+
+# User Uploaded Documents
+/uploads/
+/uploads/*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDEs & Code Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
